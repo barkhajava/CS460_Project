@@ -16,15 +16,29 @@
     <script src="https://threejs.org/examples/js/loaders/OBJLoader.js" type="text/javascript"></script>
     <script src="https://threejs.org/examples/js/loaders/MTLLoader.js" type="text/javascript"></script>
     <script src="https://threejs.org/examples/js/loaders/TDSLoader.js" type="text/javascript"></script>
+    <script src="https://threejs.org/examples/js/loaders/DDSLoader.js" type="text/javascript"></script> 
+    <script src="https://threejs.org/examples/js/loaders/FBXLoader.js" type="text/javascript"></script>
     <script src="robot.js" type="text/javascript"></script>
+    <script src="signal.js" type="text/javascript"></script>
+     <script src="lights.js" type="text/javascript"></script>
     <script src="helper.js" type="text/javascript"></script>
     <script src="https://threejs.org/examples/js/libs/dat.gui.min.js" type="text/javascript"></script>
     <script>
 
-      var scene, camera, skybox, renderer, ambientLight, light, controls;
+      var z, scene, camera, skybox, renderer, ambientLight, light, controls, model, helirunner, carmodel, count = 2, carmodel1, carmodel2, c, d , e;
+      var container;
       var floor;
+
  window.onload = function() {
 
+                // load textures
+        var floorTexture = new THREE.TextureLoader().load( 'road.png' );
+        var wallTexture = new THREE.TextureLoader().load( 'glass.jpg' );
+         var whiteTexture = new THREE.TextureLoader().load( 'white.jpg' );
+         var yellowTexture = new THREE.TextureLoader().load( 'yellow.png' );
+        var mountTexture = new THREE.TextureLoader().load( '/everest/mount.jpg' );
+        var brickTexture = new THREE.TextureLoader().load( 'brick.jpg' );
+        var carTexture = new THREE.TextureLoader().load( '/Models/rover-red.jpg' );
         scene = new THREE.Scene();
 
         var fov = 60;
@@ -36,12 +50,9 @@
 
         renderer = new THREE.WebGLRenderer({ alpha: true });
         renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( renderer.domElement );
-        
-        // var controls = new THREE.OrbitControls(camera, renderer.domElement)
-        // controls.enableDamping = true;
-        // controls.campingFactor = 0.25;
-        // controls.enableZoom = true;
+
+        container = document.createElement( 'div' );
+        document.body.appendChild( container );
 
         var keyLight = new THREE.DirectionalLight(new THREE.Color('hsl(30, 100%, 75%)'), 1.0);
         keyLight.position.set(-100, 0, 100);
@@ -57,46 +68,250 @@
         scene.add(keyLight);
         scene.add(fillLight);
         scene.add(backLight);
-        // ambientLight = new THREE.AmbientLight();
-        // scene.add( ambientLight );
 
-        // light = new THREE.DirectionalLight( 0xffffff, 5.0 );
-        // light.position.set( 10, 100, 10 );
-        // scene.add( light );
+        var object;
+
+
+        function loadModel() {
+          object.traverse( function ( child ) {
+            if ( child.isMesh ) child.material.map = texture;
+          } );
+          object.position.z = -50000;
+          object.position.y = -100;
+          scene.add( object );
+        }
+
+        var manager = new THREE.LoadingManager( loadModel );
+        manager.onProgress = function ( item, loaded, total ) {
+          // console.log( item, loaded, total );
+        };
+        // texture
+        var textureLoader = new THREE.TextureLoader( manager );
+        var texture = textureLoader.load( 'moon/Textures/Bump_2K.png' );
+        // model
+        function onProgress( xhr ) {
+          if ( xhr.lengthComputable ) {
+            var percentComplete = xhr.loaded / xhr.total * 100;
+            // console.log( 'model ' + Math.round( percentComplete, 2 ) + '% downloaded' );
+          }
+        }
+
+        function onError() {}
+        var loader = new THREE.OBJLoader( manager );
+        loader.load( 'moon/Moon 2K.obj', function ( obj ) {
+          object = obj;
+           object.scale.set(2000,2000,2000);
+
+        }, onProgress, onError );
+
+//Adding helicopter
+
+var heliTexture = new THREE.TextureLoader().load('/UH60/fuselage.jpg');
+
+loader.load('/UH60/uh60.obj', function (objectheli) {
+
+          objectheli.position.x = -3000;
+          objectheli.rotateX(-Math.PI);
+          // objectheli.rotateY(-Math.PI);
+          objectheli.rotateZ(-Math.PI);
+          objectheli.position.y = 2000;
+          objectheli.position.z = -1000;
+          objectheli.translateZ( 1000); 
+      objectheli.scale.set(70,70,100);
+      
+      objectheli.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = heliTexture;
+        //  child.material.map = texture1;
+                }
+            });
+       model = objectheli;
+        scene.add(objectheli);
         
-        //skybox sphere
+    });
 
-//          var mtlLoader = new THREE.MTLLoader();
-// //     mtlLoader.setBaseUrl( 'Tree1/' );
-// // mtlLoader.setPath( 'Tree1/' );
-// // var url = "Tree1.mtl";
+//Adding Floyover
 
-// var onProgress = function ( xhr ) {
-//           if ( xhr.lengthComputable ) {
-//             var percentComplete = xhr.loaded / xhr.total * 100;
-//             console.log( Math.round( percentComplete, 2 ) + '% downloaded' );
-//           }
-//         };
+loader.load('bridge/MerahPutih2.obj', function (bridge) {
+          bridge.position.x = 1000;
+          bridge.position.y = -380;
+          bridge.position.z = 3000;
+          bridge.rotateY(Math.PI/2);
+      // bridge.scale.set(200,200,200);
+      
+      bridge.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = yellowTexture;
+        //  child.material.map = texture1;
+                }
+            });
+        scene.add(bridge);
+    });
+
+//Adding School
+
+loader.load('school/sala preside.obj', function (school) {
+          school.position.x = -4000;
+          school.position.y = -100;
+          school.position.z = 4000;
+      school.scale.set(2,2,2);
+      
+      school.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = whiteTexture;
+        //  child.material.map = texture1;
+                }
+            });
+        scene.add(school);
+    });
+ 
+
+ // Adding temple
+
+ loader.load('temple/Model/Japanese_Temple.obj', function (temple) {
+          temple.position.x = 3000;
+          temple.position.y = -100;
+          temple.position.z = 4000;
+      temple.scale.set(20,20,20);
+      
+      temple.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = whiteTexture;
+        //  child.material.map = texture1;
+                }
+            });
+        scene.add(temple);
+    });
+//Adding house
+
+loader.load('house/house.obj', function (house) {
+          house.position.x = -800;
+          house.position.y = -100;
+          house.position.z = 4000;
+      house.scale.set(2,2,2);
+      
+      house.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = brickTexture;
+        //  child.material.map = texture1;
+                }
+            });
+        scene.add(house);
+    });
 
 
-// var onError = function () { };
+loader.load('house/house.obj', function (house1) {
+          house1.position.x = 800;
+          house1.position.y = -100;
+          house1.position.z = 4000;
+      house1.scale.set(2,2,2);
+      
+      house1.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = brickTexture;
 
-// mtlLoader.load( "Tree1/Tree1.mtl", function( materials ) {
+                }
+            });
+        scene.add(house1);
+    });
 
-//     materials.preload();
+// Adding Trees
+var leafTexture = new THREE.TextureLoader().load( 'leaf.png' );
 
-//     var objLoader = new THREE.OBJLoader();
-//     objLoader.setMaterials( materials );
-//     // objLoader.setPath( 'Tree1/' );
-//     objLoader.load( 'Tree1/Tree1.obj', function ( object ) {
+loader.load('Christmas Tree.obj', function (objecttree) {
+          objecttree.position.x = -800;
+          objecttree.position.y = -100;
+          objecttree.position.z = -1000;
+      objecttree.scale.set(10,10,10);
+      
+      objecttree.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = leafTexture;
+        //  child.material.map = texture1;
+                }
+            });
+        scene.add(objecttree);
+    });
 
-//         object.position.y = - 95;
-//         scene.add( object );
+loader.load('Christmas Tree.obj', function (objecttree2) {
+          objecttree2.position.x = -3000;
+          objecttree2.position.y = -100;
+          objecttree2.position.z = -1000;
+      objecttree2.scale.set(10,10,10);
+      
+      objecttree2.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = leafTexture;
+        //  child.material.map = texture1;
+                }
+            });
+        scene.add(objecttree2);
+    });
 
-//     }, onProgress, onError );
+loader.load('Christmas Tree.obj', function (objecttree3) {
+          objecttree3.position.x = 800;
+          objecttree3.position.y = -100;
+          objecttree3.position.z = -1000;
+      objecttree3.scale.set(10,10,10);
+      
+      objecttree3.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = leafTexture;
+   
+                }
+            });
+        scene.add(objecttree3);
+    });
 
-//     }) ;
 
+loader.load('Christmas Tree.obj', function (objecttree4) {
+          objecttree4.position.x = 3000;
+          objecttree4.position.y = -100;
+          objecttree4.position.z = -1000;
+      objecttree4.scale.set(10,10,10);
+      
+      objecttree4.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = leafTexture;
+    
+                }
+            });
+        scene.add(objecttree4);
+    });
+  
+
+  loader.load('Christmas Tree.obj', function (objecttree5) {
+          objecttree5.position.x = 1000;
+          objecttree5.position.y = -100;
+          objecttree5.position.z = -3000;
+
+      objecttree5.scale.set(10,10,10);
+      
+      objecttree5.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = leafTexture;
+ 
+                }
+            });
+        scene.add(objecttree5);
+    });
+  
+
+  loader.load('Christmas Tree.obj', function (objecttree6) {
+          objecttree6.position.x = -950;
+          objecttree6.position.y = -100;
+          objecttree6.position.z = -3000;
+      objecttree6.scale.set(10,10,10);
+      
+      objecttree6.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = leafTexture;
+        
+                }
+            });
+        scene.add(objecttree6);
+    });
+  
   
   // create skybox
   let materialArray = [];
@@ -122,10 +337,8 @@ for (var i = 0; i < 6; i++)
   skybox = new THREE.Mesh(skyboxGeo, materialArray);
   scene.add(skybox);
 
-        // load textures
-        var floorTexture = new THREE.TextureLoader().load( 'road.png' );
-        var wallTexture = new THREE.TextureLoader().load( 'marble.jpg' );
-        var floorGeometry = new THREE.PlaneBufferGeometry( 11000, 11000 );
+
+        var floorGeometry = new THREE.PlaneBufferGeometry( 12000, 10000 );
         var floorMaterial = new THREE.MeshBasicMaterial( {
           map: floorTexture,
           side: THREE.DoubleSide
@@ -135,57 +348,10 @@ for (var i = 0; i < 6; i++)
         floor.rotateX(Math.PI/2);
         scene.add( floor );
 
-  var loader = new THREE.OBJLoader(); 
+  // var loader = new THREE.OBJLoader(); 
   var mtlLoader = new THREE.MTLLoader();
   
-  var JPGFile = '/examples/Project/Tree1/Leaves0156_1_S.png';
- //  var JPGFile1 = '/examples/Project/Tree1/BarkDecidious0194_7_S.jpg';
-    // mtlLoader.setTextures('/examples/Project/Tree1');
-     mtlLoader.setPath('/examples/Project/Tree1/');
-    mtlLoader.load('Tree1.mtl', function(materials){
-      materials.preload();
-
-      
-      loader.setMaterials(materials);
-      loader.load('/examples/Project/Tree1/Tree1.obj', function(object){
-	   object.position.x = 50;
-	//   object.position.z = 50;
-        object.position.y = -100;
-		var texture = new THREE.TextureLoader().load(JPGFile);
-	//	var texture1 = new THREE.TextureLoader().load(JPGFile1);
-		object.traverse(function (child) {   // aka setTexture
-                if (child instanceof THREE.Mesh) {
-                    child.material.map = texture;
-				//	child.material.map = texture1;
-                }
-            });
-		
-		
-		
-        // scene.add(object);
-      });
-
-    });
-
-         
-         // var MTLLoader = new THREE.MTLLoader();
-
-        // var manager = new THREE.LoadingManager();
-        // new MTLLoader( manager )
-        //   .setPath( 'Tree1/' )
-        //   .load( 'Tree1.mtl', function ( materials ) {
-        //     materials.preload();
-
-
-        //     new OBJLoader( manager )
-        //       .setMaterials( materials )
-        //       .setPath( 'Tree1/' )
-        //       .load( 'Tree1.obj', function ( object ) {
-        //         object.position.y = - 100;
-        //         scene.add( object );
-        //       }, onProgress, onError );
-        //   } );
-
+    
 
         //3d objects
 
@@ -234,7 +400,6 @@ for (var i = 0; i < 6; i++)
       object4.traverse(function (child) {   // aka setTexture
                 if (child instanceof THREE.Mesh) {
                     child.material.map = wallTexture;
-        //  child.material.map = texture1;
                 }
             });
       
@@ -250,7 +415,6 @@ for (var i = 0; i < 6; i++)
       object5.traverse(function (child) {   // aka setTexture
                 if (child instanceof THREE.Mesh) {
                     child.material.map = wallTexture;
-        //  child.material.map = texture1;
                 }
             });
     
@@ -258,18 +422,79 @@ for (var i = 0; i < 6; i++)
       
           scene.add( object5 )
           } );
+
+         //water
+
+          var video = document.getElementById('video');
+        video.play();
+        var meshTexture = new THREE.VideoTexture( video );
 		   
-        loader.load('/examples/Project/mountain/mountblend1.obj', function (object2) {
-          object2.position.x = -4800;
-          object2.position.z = -4800;
-          object2.rotateY(Math.PI/2);
-          object2.scale.set(200,200,200);
-          // object2.scale.set(2,1,1);
-		  // object2.position.x = -100;
+        var waterGeometry = new THREE.PlaneBufferGeometry( 100, 100 );
+        var waterMaterial = new THREE.MeshBasicMaterial( {
+          map: meshTexture,
+          // side: THREE.DoubleSide
+        } );
+        water = new THREE.Mesh( waterGeometry, waterMaterial );
+        water.position.x = -3000;
+        water.position.z = -3400;
+        water.position.y = -80;
+        water.scale.set(25,40,60);
+        water.rotateX(-Math.PI/2);
+        scene.add( water );
+
+
+//park
+
+        // var loader = new THREE.FBXLoader();
+        // loader.load( 'park/children area.fbx', function ( park ) {
+        //   mixer = new THREE.AnimationMixer( park );
+        //   var action = mixer.clipAction( park.animations[ 0 ] );
+        //   action.play();
+        //   park.traverse( function ( child ) {
+        //     if ( child.isMesh ) {
+        //       child.castShadow = true;
+        //       child.receiveShadow = true;
+        //     }
+        //   } );
+        //   scene.add( park );
+        // } );
+
+// stadium
+
+        loader.load('/Stadium/sports stadium.obj', function (stadium) {
+          stadium.position.x = 3900;
+          stadium.position.y = -80;
+          stadium.position.z = -3800;
+          stadium.scale.set(0.8,0.8,0.8);
+          // object2.rotateY(Math.PI/2);
+      
+      stadium.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = whiteTexture;
+        //  child.material.map = texture1;
+                }
+            });
+    
+      
+      
+          scene.add( stadium )
+          } );
+
+
+
+
+// mountains
+
+        loader.load('/everest/everest.obj', function (object2) {
+          object2.position.x = -4300;
+          object2.position.y = 50;
+          object2.position.z = -3800;
+          object2.scale.set(1000,1000,1000);
+          // object2.rotateY(Math.PI/2);
 		  
 		  object2.traverse(function (child) {   // aka setTexture
                 if (child instanceof THREE.Mesh) {
-                    child.material.map = wallTexture;
+                    child.material.map = mountTexture;
 				//	child.material.map = texture1;
                 }
             });
@@ -280,25 +505,192 @@ for (var i = 0; i < 6; i++)
           } );
 
 
-         loader.load('Models/1.obj', function (object6) {
-          object6.position.x = -3000;
-          object6.position.y = -100;
-          object6.rotateY(Math.PI/2);
-          object6.scale.set(0.004,0.004,0.004);
-          // object2.scale.set(2,1,1);
-      // object2.position.x = -100;
+           loader.load('/everest/everest.obj', function (objectmount) {
+          objectmount.position.x = -4300;
+          objectmount.position.y = 50;
+          objectmount.position.z = -2800;
+          objectmount.scale.set(700,700,900);
+          // object2.rotateY(Math.PI/2);
       
-      object6.traverse(function (child) {   // aka setTexture
+      objectmount.traverse(function (child) {   // aka setTexture
                 if (child instanceof THREE.Mesh) {
-                    child.material.map = wallTexture;
+                    child.material.map = mountTexture;
         //  child.material.map = texture1;
                 }
             });
     
       
       
-          scene.add( object6 )
+          scene.add( objectmount )
           } );
+
+
+// Car
+
+
+// var leafTexture = new THREE.TextureLoader().load( '/Models/rover-red.jpg' );
+
+loader.load('/Models/1.obj', function (objectcar) {
+          objectcar.position.x = -4000;
+          objectcar.position.y = -100;
+          objectcar.position.z = 500;
+
+      objectcar.scale.set(0.002,0.002,0.002);
+      objectcar.rotateY(Math.PI/2);
+      objectcar.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = carTexture;
+                }
+            });
+      carmodel1 = objectcar;
+        scene.add(objectcar);
+    });
+
+loader.load('/Models/1.obj', function (objectcar1) {
+          objectcar1.position.x = 2000;
+          objectcar1.position.y = -100;
+          objectcar1.position.z = -500;
+
+      objectcar1.scale.set(0.002,0.002,0.002);
+      objectcar1.rotateY(-Math.PI/2);
+      objectcar1.traverse(function (child) {   // aka setTexture
+                if (child instanceof THREE.Mesh) {
+                    child.material.map = carTexture;
+                }
+            });
+      carmodel2 = objectcar1
+        scene.add(objectcar1);
+    });
+
+
+
+
+ let normalz = [];
+  let tz = new THREE.TextureLoader();
+  let mx_ft = tz.load("Models/rover-red.jpg");
+  let mx_bk = tz.load("Models/rover-logo.jpg");
+  let mx_up = tz.load("Models/orange.jpg");
+ 
+  normalz.push(new THREE.MeshBasicMaterial({ map: mx_ft }));
+  normalz.push(new THREE.MeshBasicMaterial({ map: mx_bk }));
+  normalz.push(new THREE.MeshBasicMaterial({ map: mx_up }));
+
+        var dummyvar;
+        for (var i = 0; i < 3; i++)
+    normalz[i].side = THREE.BackSide;
+
+        var loader = new THREE.OBJLoader( );
+        loader.setResourcePath( '/Models/' );
+        loader.load( '/Models/1.obj', function ( object ) {
+          object.traverse( function ( child ) {
+            object.scale.set(0.002, 0.002, 0.002);
+            object.position.y = -100;
+            object.position.x = 400;
+             object.position.z = -5000;
+             // object.Color = 'blue';
+            // object.rotateX(-Math.PI/2);
+            if (child instanceof THREE.Mesh) {
+                    child.material.map = carTexture;
+        //  child.material.map = texture1;
+                }
+            
+          } );
+
+          carmodel = object;
+          scene.add( object );
+        } );
+
+
+ //create lights
+
+       
+        s = new lights(-700, -100, -1000);
+
+        s1 = new lights(-750, -100, -3000);
+
+         s2 = new lights(-750, -100, -5000);
+        s3 = new lights(900, -100, -1000);
+        s4 = new lights(900, -100, -3000);
+        s5 = new lights(900, -100, -5000);
+        s.show(scene);
+        s1.show(scene);
+        s2.show(scene);
+         s3.show(scene);
+          s4.show(scene);
+           s5.show(scene);
+
+
+function Flyhelicopter() {
+
+           y =  model.position.x;
+
+           renderer.render(scene, camera);
+           // model.rotation.set(Math.PI,0,0);
+           model.lookAt(1,-1,1);
+          model.position.x = y + 5;
+  requestAnimationFrame(Flyhelicopter);
+
+      };
+
+function runcar() {
+
+           c =  carmodel.position.z;
+           d = carmodel2.position.x;
+
+// move car 1
+
+           renderer.render(scene, camera);
+           if(carmodel.position.z < -500 && count > 1)
+           {
+            carmodel.position.z = c + 20;
+            }
+          else
+          {
+            count = 0;
+
+            carmodel.rotation.set(0,-Math.PI/2,0);
+            carmodel.position.x = carmodel.position.x - 10;
+            if (carmodel.position.x < -4000)
+            {
+
+                carmodel.rotation.set(0,-Math.PI/2,0);
+              carmodel.position.set = (400,-100,-5000);
+            
+              carmodel.position.x = 0;
+              count = 2;
+            }
+        }
+
+// move car 2
+
+            
+           if(carmodel1.position.x < 6500 )
+           {
+            carmodel1.position.x = carmodel1.position.x + 20;
+            }
+          else
+          {
+           
+            carmodel1.position.set(-4000, -100, 500);
+
+          }
+
+        // move car 3
+
+           if(carmodel2.position.x > -5720)
+           {
+            carmodel2.position.x = d - 20;
+            }
+          else
+          {
+            carmodel2.position.set(5000,-100,-500);
+          }
+
+
+
+  requestAnimationFrame(runcar);
+
+      };
 
         //create robots
 
@@ -316,36 +708,30 @@ for (var i = 0; i < 6; i++)
             r.walk();
 
            }
-         }    
+         },
+
+         AnimateCity: function() {
+
+         model.translateX(10);
+
+          z =0;
+
+          Flyhelicopter();
+          runcar();
+         }
+
           
         }
 
         var gui = new dat.GUI();
                 var moving = gui.addFolder( "Movement" );
                 moving.add( controller, "walk");
+                moving.add(controller, "AnimateCity");
 
-        // //3ds files dont store normal maps
-        // var loaderz = new THREE.TextureLoader();
-        // var normal = loaderz.load( 'Tree1.jpg' );
-        // var loadery = new THREE.TDSLoader( );
-        // loadery.setResourcePath( 'Tree1/' );
-        // loadery.load( 'Tree1.3ds', function ( object ) {
-        //   object.traverse( function ( child ) {
-        //     if ( child.isMesh ) {
-        //       child.material.normalMap = normal;
-        //     }
-        //   } );
-        // //   scene.add( object );
-        // // } );
-        // renderer = new THREE.WebGLRenderer();
-        // renderer.setPixelRatio( window.devicePixelRatio );
-        // renderer.setSize( window.innerWidth, window.innerHeight );
-        // container.appendChild( renderer.domElement );
-
-
-
-
-
+     renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container.appendChild( renderer.domElement );
 
         controls = new THREE.TrackballControls( camera, renderer.domElement );
 
@@ -374,20 +760,31 @@ for (var i = 0; i < 6; i++)
               all_robots.push(r);
           }
       };
+
+  
       function animate() {
 
         requestAnimationFrame( animate );
          for (r in all_robots) {
           r = all_robots[r];
           r.onAnimate();  
-        }
+
+          }
+
         controls.update();
+
         renderer.render( scene, camera );
-  // r.onAnimate();
 
       };
 
     </script>
   </head>
-  <body></body>
+  <body>
+    <div style="visibility:hidden">
+    <video id="video" loop crossOrigin="anonymous" webkit-playsinline style="display:none">
+      <source src="water2.mov" >
+    </video>
+
+
+  </body>
 </html>
