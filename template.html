@@ -55,11 +55,19 @@
         document.body.appendChild( container );
 
         var keyLight = new THREE.DirectionalLight(new THREE.Color('hsl(30, 100%, 75%)'), 1.0);
-        keyLight.position.set(-100, 0, 100);
+        keyLight.position.set(100, 50, 100);
 
+        // var ambientLight  = new THREE .ambientLight 
+
+        //  ambientLight = new THREE.AmbientLight();
+        // scene.add( ambientLight );
+
+        // directionalLight = new THREE.DirectionalLight( 0xffffff, 5.0 );
+        // directionalLight.position.set( 0, 100, 10 );
+        // scene.add( directionalLight );
 
         var fillLight = new THREE.DirectionalLight(new THREE.Color('hsl(240, 100%, 75%)'), 0.75);
-        fillLight.position.set(100, 0, 100);
+        fillLight.position.set(-100, 0, 100);
 
          var backLight = new THREE.DirectionalLight(0xffffff, 1.0);
         backLight.position.set(100, 0, -100).normalize;
@@ -77,7 +85,7 @@
             if ( child.isMesh ) child.material.map = texture;
           } );
           object.position.z = -50000;
-          object.position.y = -100;
+          object.position.y = -1000;
           scene.add( object );
         }
 
@@ -106,14 +114,14 @@
 
 //Adding helicopter
 
-var heliTexture = new THREE.TextureLoader().load('/UH60/fuselage.jpg');
+var heliTexture = textureLoader.load('/UH60/1.jpg');
 
 loader.load('/UH60/uh60.obj', function (objectheli) {
 
           objectheli.position.x = -3000;
-          objectheli.rotateX(-Math.PI);
-          // objectheli.rotateY(-Math.PI);
-          objectheli.rotateZ(-Math.PI);
+          objectheli.rotateX(80);
+          objectheli.rotateZ(200);
+          // objectheli.rotateZ(-Math.PI);
           objectheli.position.y = 2000;
           objectheli.position.z = -1000;
           objectheli.translateZ( 1000); 
@@ -625,8 +633,6 @@ function Flyhelicopter() {
            y =  model.position.x;
 
            renderer.render(scene, camera);
-           // model.rotation.set(Math.PI,0,0);
-           model.lookAt(1,-1,1);
           model.position.x = y + 5;
   requestAnimationFrame(Flyhelicopter);
 
